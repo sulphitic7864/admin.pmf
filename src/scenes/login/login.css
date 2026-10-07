@@ -1,0 +1,150 @@
+/* .container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(33, 33, 33, 0.573);
+  background-image: url("../../assets/coverImg/cover2.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.login-container {
+  text-align: center;
+  width: 45vw;
+  height: 100vh;
+  margin: 0 10vw;
+  padding: 50px 80px;
+  background-color: rgba(140, 140, 140, 0.668);
+  backdrop-filter: blur(50px);
+}
+.login-container img {
+  width: 150px;
+  height: 150px;
+}
+.login-container button {
+  padding: 15px;
+  margin-top: 10px;
+}
+.login-container h2 {
+  font-size: 28px;
+  margin: 0px;
+  padding: 0px;
+}
+@media screen and (max-width: 960px) {
+  .login-container {
+    width: 50vw;
+    padding: 30px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .login-container {
+    width: 90vw;
+    padding: 30px;
+  }
+} */
+
+/* .login{
+  background-color: #fff;
+} */
+.input{
+  color: #0000 !important;
+}
+
+/* login.css */
+
+.div-container {
+  height: 100vh;
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+  background-color: white; /* Set background color to white */
+  color: black; /* Set font color to black */
+  overflow: hidden !important;
+
+}
+
+.row{
+  background-color: #ffff;
+
+}
+
+.login-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+}
+
+.col-8 img {
+  width: 100% !important;
+  height: 100vh; /* Full height of the viewport */
+  object-fit: cover; /* Ensure the image covers the container */
+}
+
+h2, p {
+  color: black; /* Ensure heading and paragraph text are black */
+}
+
+.MuiAlert-filledSuccess, .MuiAlert-filledError {
+  color: white !important; /* Ensure Snackbar text remains white */
+}
+
+.MuiAlert-filledSuccess, .MuiAlert-filledError {
+  color: white !important; /* Ensure Snackbar text remains white */
+}
+
+.MuiOutlinedInput-root {
+  & .MuiOutlinedInput-notchedOutline {
+    border-color: black; /* Border color */
+  }
+  &:hover .MuiOutlinedInput-notchedOutline {
+    border-color: black !important; /* Border color on hover */
+  }
+  &.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: black; /* Border color when focused */
+  }
+  & .MuiOutlinedInput-input {
+    color: black !important; /* Input text color */
+  }
+}
+
+.MuiInputLabel-root {
+  color: black; /* Label color */
+}
+
+.MuiInputBase-root {
+  color: black; /* Text color */
+}
+
+@media screen and (max-width: 576px) {
+  .b-img{
+  display:none;
+  }
+
+  .row{
+    height: 100%;
+    /* margin-top: 200px; */
+  }
+}
+
+.submit-button{
+  background-color: #3E70EF !important;
+  /* border-radius: 5% !important; */
+  width:80% !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: black !important;
+}
+
+.form-margins {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+
+
+
