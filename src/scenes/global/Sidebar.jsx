@@ -1,4 +1,6 @@
 import {
+  ChevronLeftRounded,
+  ChevronRightRounded,
   ArticleOutlined,
   DashboardOutlined,
   EmailOutlined,
@@ -18,6 +20,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -36,7 +39,13 @@ const navigation = [
   { label: "Contact inbox", path: "/contactusemail", icon: EmailOutlined },
 ];
 
-export default function Sidebar({ mobileOpen, onClose, isMobile }) {
+export default function Sidebar({
+  mobileOpen,
+  onClose,
+  isMobile,
+  collapsed,
+  onToggleCollapsed,
+}) {
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -55,6 +64,20 @@ export default function Sidebar({ mobileOpen, onClose, isMobile }) {
           <Typography className="brand-name">Place My Films</Typography>
           <Typography className="brand-caption">ADMIN CONSOLE</Typography>
         </Box>
+        {!isMobile && (
+          <Tooltip title={collapsed ? "Expand sidebar" : "Collapse sidebar"} placement="right">
+            <IconButton
+              className="sidebar-toggle"
+              onClick={onToggleCollapsed}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
+              aria-controls="admin-sidebar-navigation"
+              size="small"
+            >
+              {collapsed ? <ChevronRightRounded /> : <ChevronLeftRounded />}
+            </IconButton>
+          </Tooltip>
+        )}
         {isMobile && (
           <IconButton onClick={onClose} aria-label="Close navigation" size="small">
             <CloseRounded />
@@ -63,37 +86,46 @@ export default function Sidebar({ mobileOpen, onClose, isMobile }) {
       </Box>
 
       <Typography className="sidebar-section-label">WORKSPACE</Typography>
-      <List disablePadding className="sidebar-nav">
+      <List disablePadding className="sidebar-nav" id="admin-sidebar-navigation">
         {navigation.map(({ label, path, icon: Icon }) => (
-          <ListItemButton
+          <Tooltip
             key={path}
-            component={NavLink}
-            to={path}
-            onClick={onClose}
-            className="sidebar-link"
-            sx={{
-              "&.active": {
-                color: theme.palette.primary.main,
-                backgroundColor: theme.palette.action.selected,
-                "& .MuiListItemIcon-root": { color: theme.palette.primary.main },
-              },
-            }}
+            title={collapsed && !isMobile ? label : ""}
+            placement="right"
           >
-            <ListItemIcon><Icon /></ListItemIcon>
-            <ListItemText primary={label} />
-          </ListItemButton>
+            <ListItemButton
+              component={NavLink}
+              to={path}
+              onClick={onClose}
+              className="sidebar-link"
+              aria-label={label}
+              sx={{
+                "&.active": {
+                  color: theme.palette.primary.main,
+                  backgroundColor: theme.palette.action.selected,
+                  "& .MuiListItemIcon-root": { color: theme.palette.primary.main },
+                },
+              }}
+            >
+              <ListItemIcon><Icon /></ListItemIcon>
+              <ListItemText primary={label} />
+            </ListItemButton>
+          </Tooltip>
         ))}
       </List>
 
       <Box className="sidebar-footer">
-        <Button
-          className="sidebar-logout"
-          onClick={logout}
-          startIcon={<LogoutOutlined />}
-          fullWidth
-        >
-          Log out
-        </Button>
+        <Tooltip title={collapsed && !isMobile ? "Log out" : ""} placement="right">
+          <Button
+            className="sidebar-logout"
+            onClick={logout}
+            startIcon={<LogoutOutlined />}
+            aria-label="Log out"
+            fullWidth
+          >
+            {collapsed && !isMobile ? null : "Log out"}
+          </Button>
+        </Tooltip>
       </Box>
     </Box>
   );

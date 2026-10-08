@@ -9,13 +9,26 @@ export default function AdminShell() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => localStorage.getItem("admin-sidebar-collapsed") === "true"
+  );
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((collapsed) => {
+      const nextCollapsed = !collapsed;
+      localStorage.setItem("admin-sidebar-collapsed", String(nextCollapsed));
+      return nextCollapsed;
+    });
+  };
 
   return (
-    <Box className={`admin-app theme-${theme.palette.mode}`}>
+    <Box className={`admin-app theme-${theme.palette.mode}${sidebarCollapsed ? " sidebar-collapsed" : ""}`}>
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
         isMobile={isMobile}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={toggleSidebar}
       />
       <Box component="main" className="admin-main">
         <Topbar onMenuClick={() => setMobileOpen(true)} isMobile={isMobile} />

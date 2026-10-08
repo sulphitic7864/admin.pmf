@@ -63,6 +63,7 @@ a[href],
   height: 100vh;
   position: sticky;
   top: 0;
+  transition: width 180ms ease, flex-basis 180ms ease;
 }
 
 .admin-sidebar-paper {
@@ -164,6 +165,35 @@ a[href],
   border-top: 1px solid var(--border);
 }
 
+.sidebar-toggle {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  margin-left: auto !important;
+  color: #08758d !important;
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 11px !important;
+  box-shadow: 0 3px 10px rgba(22, 48, 69, 0.08);
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(8, 117, 141, 0.1) !important;
+  border-color: rgba(8, 117, 141, 0.3) !important;
+  box-shadow: 0 5px 14px rgba(8, 117, 141, 0.15);
+  transform: translateX(-1px);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid #0ea5a8;
+  outline-offset: 2px;
+}
+
+.sidebar-toggle .MuiSvgIcon-root {
+  font-size: 21px;
+}
+
 .sidebar-logout {
   min-height: 44px;
   margin-top: 0 !important;
@@ -187,12 +217,63 @@ a[href],
   outline-offset: 3px;
 }
 
+.sidebar-logout .MuiButton-startIcon {
+  margin-right: 8px;
+}
+
 .admin-main {
   min-width: 0;
   flex: 1;
   height: 100vh;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.admin-app.sidebar-collapsed > .admin-sidebar {
+  width: 78px;
+  flex-basis: 78px;
+}
+
+.admin-app.sidebar-collapsed .sidebar-content {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.admin-app.sidebar-collapsed .brand-row {
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 0 22px;
+}
+
+.admin-app.sidebar-collapsed .brand-copy,
+.admin-app.sidebar-collapsed .sidebar-section-label,
+.admin-app.sidebar-collapsed .sidebar-link .MuiListItemText-root {
+  display: none;
+}
+
+.admin-app.sidebar-collapsed .sidebar-toggle {
+  margin-left: 0 !important;
+}
+
+.admin-app.sidebar-collapsed .sidebar-link {
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.admin-app.sidebar-collapsed .sidebar-link .MuiListItemIcon-root {
+  min-width: 0;
+  justify-content: center;
+  margin: 0;
+}
+
+.admin-app.sidebar-collapsed .sidebar-logout {
+  min-width: 44px;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.admin-app.sidebar-collapsed .sidebar-logout .MuiButton-startIcon {
+  margin: 0;
 }
 
 .admin-topbar {
@@ -412,12 +493,28 @@ a[href],
 }
 
 .metric-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
   min-height: 150px;
   padding: 19px 20px;
   border: 1px solid var(--border);
   border-radius: 15px;
   background: var(--surface);
   box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(7, 152, 181, 0.35);
+  box-shadow: 0 14px 32px rgba(7, 91, 120, 0.11);
+  transform: translateY(-2px);
+}
+
+.metric-card:focus-visible {
+  outline: 2px solid #078da9;
+  outline-offset: 3px;
 }
 
 .metric-topline {
@@ -437,6 +534,7 @@ a[href],
   color: var(--text-secondary);
   font-size: 11px !important;
   font-weight: 600 !important;
+  text-transform: capitalize;
 }
 
 .metric-value {
