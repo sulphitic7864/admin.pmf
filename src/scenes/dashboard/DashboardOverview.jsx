@@ -35,7 +35,7 @@ export default function DashboardOverview() {
       <Box className="page-heading">
         <Box>
           <Typography className="page-eyebrow">OVERVIEW</Typography>
-          <Typography variant="h4" className="page-title">Good to see you</Typography>
+          <Typography variant="h4" className="page-title">Good to see you!</Typography>
           <Typography className="page-subtitle">Here’s what’s happening across your platform today.</Typography>
         </Box>
         <Button

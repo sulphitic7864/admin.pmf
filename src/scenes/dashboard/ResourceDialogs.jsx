@@ -1,4 +1,4 @@
-import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material";
+import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { BlogPreview, PaymentDetail, UserDetail, VideoPlayer } from "./ResourceComponents";
 
 export default function ResourceDialogs({ couponDialog, setCouponDialog, couponDraft, setCouponDraft, saveCoupon, blogDialog, setBlogDialog, blogDraft, setBlogDraft, blogImage, setBlogImage, saveBlog, busy, viewBlog, setViewBlog, viewPayment, setViewPayment, viewUser, setViewUser, viewVideo, setViewVideo, theme }) {
@@ -259,6 +259,40 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
                 <Chip size="small" label={viewVideo.submissionStatus} />
               )}
             </Stack>
+            {viewVideo.submissionFiles && Object.keys(viewVideo.submissionFiles).length > 0 && (
+              <Stack spacing={1} sx={{ mt: 2 }}>
+                <Typography variant="subtitle2">Required submission files</Typography>
+                {[
+                  ["keyArtPortrait", "Key Art (270x390)"],
+                  ["keyArtLandscape", "Key Art (800x450)"],
+                  ["keyArtWide", "Key Art (1920x720)"],
+                  ["keyArtFullHd", "Key Art (1920x1080)"],
+                  ["subtitleFile", "Subtitle File SRT"],
+                  ["metadataFile", "Meta Data"],
+                  ["video", "Video File (MP4)"],
+                ].map(([field, label]) => {
+                  const fileUrl = viewVideo.submissionFiles[field];
+                  return fileUrl ? (
+                    <Button
+                      key={field}
+                      component="a"
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      size="small"
+                      variant="outlined"
+                      sx={{ alignSelf: "flex-start", textTransform: "none" }}
+                    >
+                      {label}
+                    </Button>
+                  ) : (
+                    <Typography key={field} variant="body2" color="error">
+                      Missing: {label}
+                    </Typography>
+                  );
+                })}
+              </Stack>
+            )}
           </DialogContent>
           <DialogActions sx={{ px: 0, pb: 0 }}>
             <Button variant="contained" onClick={() => setViewVideo(null)}>Close</Button>

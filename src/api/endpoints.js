@@ -108,6 +108,7 @@ export const API_ENDPOINTS = {
     adminUpload: "/videosUpload/admin/upload",
     list: "/videosUpload/admin/getAll",
     adminGet: byId("/videosUpload/admin/getById"),
+    updateSubmissionStatus: byId("/videosUpload/admin/updateSubmissionStatus"),
     adminUpdate: byId("/videosUpload/admin/update"),
     remove: byId("/videosUpload/admin/deleteById"),
     byAdmin: "/videosUpload/admin/getByAdminId",

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AddRounded, ArticleOutlined, CheckCircleOutline, DeleteOutline, EditOutlined, RefreshRounded, VisibilityOutlined } from "@mui/icons-material";
+import { AddRounded, ArticleOutlined, CheckCircleOutline, DeleteOutline, EditOutlined, HighlightOff, RefreshRounded, VisibilityOutlined } from "@mui/icons-material";
 import { Avatar, Box, Button, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
@@ -124,6 +124,27 @@ export default function ResourcePage({ page }) {
     try {
       await api.put(API_ENDPOINTS.blogs.updateStatus(id), { status });
       toast.success(`Blog set to ${status.toLowerCase()}.`);
+      await loadRows();
+    } catch (requestError) {
+      toast.error(getApiErrorMessage(requestError));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateVideoSubmissionStatus = async (row, status) => {
+    const id = getRecordId(row);
+    if (id === undefined || id === null) {
+      toast.error("This submission does not include an ID and cannot be reviewed.");
+      return;
+    }
+    const action = status === "approved" ? "approve" : "decline";
+    if (!window.confirm(`Are you sure you want to ${action} this film submission?`)) return;
+
+    setBusy(true);
+    try {
+      await api.put(API_ENDPOINTS.videos.updateSubmissionStatus(id), { status });
+      toast.success(`Submission ${status}.`);
       await loadRows();
     } catch (requestError) {
       toast.error(getApiErrorMessage(requestError));
@@ -295,7 +316,7 @@ export default function ResourcePage({ page }) {
     ...(config.deletable || config.blogActions || config.couponActions || config.paymentActions || config.userActions || config.videoActions ? [{
       field: "actions",
       headerName: "Actions",
-      width: config.blogActions ? 195 : config.couponActions ? 125 : config.userActions ? 105 : 75,
+      width: config.blogActions ? 195 : config.couponActions ? 125 : config.userActions ? 105 : config.videoActions ? 210 : 75,
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
@@ -340,6 +361,32 @@ export default function ResourcePage({ page }) {
             <Tooltip title={row.status === "Active" ? "Deactivate blog" : "Activate blog"}>
               <IconButton size="small" disabled={busy} onClick={() => toggleBlogStatus(row)} aria-label="Toggle blog status">
                 <CheckCircleOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {config.videoActions && row.submissionStatus !== "approved" && (
+            <Tooltip title="Approve submission">
+              <IconButton
+                size="small"
+                disabled={busy}
+                onClick={() => updateVideoSubmissionStatus(row, "approved")}
+                aria-label="Approve submission"
+                color="success"
+              >
+                <CheckCircleOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {config.videoActions && row.submissionStatus !== "rejected" && (
+            <Tooltip title="Decline submission">
+              <IconButton
+                size="small"
+                disabled={busy}
+                onClick={() => updateVideoSubmissionStatus(row, "rejected")}
+                aria-label="Decline submission"
+                color="error"
+              >
+                <HighlightOff fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
