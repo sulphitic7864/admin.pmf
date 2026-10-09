@@ -1,7 +1,7 @@
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { BlogPreview, PaymentDetail, UserDetail, VideoPlayer } from "./ResourceComponents";
 
-export default function ResourceDialogs({ couponDialog, setCouponDialog, couponDraft, setCouponDraft, saveCoupon, blogDialog, setBlogDialog, blogDraft, setBlogDraft, blogImage, setBlogImage, saveBlog, busy, viewBlog, setViewBlog, viewPayment, setViewPayment, viewUser, setViewUser, viewVideo, setViewVideo, theme }) {
+export default function ResourceDialogs({ couponDialog, setCouponDialog, couponDraft, setCouponDraft, saveCoupon, blogDialog, setBlogDialog, blogDraft, setBlogDraft, blogImage, setBlogImage, saveBlog, busy, viewBlog, setViewBlog, viewPayment, setViewPayment, viewUser, setViewUser, viewVideo, setViewVideo, videoToReject, setVideoToReject, rejectionReason, setRejectionReason, submitVideoRejection, theme }) {
   return (
     <>
       {couponDialog && (
@@ -296,6 +296,58 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
           </DialogContent>
           <DialogActions sx={{ px: 0, pb: 0 }}>
             <Button variant="contained" onClick={() => setViewVideo(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      {videoToReject && (
+        <Dialog
+          open
+          onClose={() => {
+            if (!busy) {
+              setVideoToReject(null);
+              setRejectionReason("");
+            }
+          }}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Decline film submission</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Enter the reason this submission was not approved. The submitter will see it in their dashboard and receive it by email.
+            </Typography>
+            <TextField
+              autoFocus
+              required
+              fullWidth
+              multiline
+              minRows={3}
+              maxRows={8}
+              label="Rejection reason"
+              value={rejectionReason}
+              onChange={(event) => setRejectionReason(event.target.value)}
+              inputProps={{ maxLength: 2000 }}
+              helperText={`${rejectionReason.length}/2000`}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setVideoToReject(null);
+                setRejectionReason("");
+              }}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              disabled={busy || !rejectionReason.trim()}
+              onClick={() => submitVideoRejection(rejectionReason.trim())}
+            >
+              {busy ? "Sending…" : "Reject submission"}
+            </Button>
           </DialogActions>
         </Dialog>
       )}

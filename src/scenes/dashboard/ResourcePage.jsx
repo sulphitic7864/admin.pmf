@@ -26,6 +26,8 @@ export default function ResourcePage({ page }) {
   const [viewPayment, setViewPayment] = useState(null);
   const [viewUser, setViewUser] = useState(null);
   const [viewVideo, setViewVideo] = useState(null);
+  const [videoToReject, setVideoToReject] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [busy, setBusy] = useState(false);
   const handleSearchChange = useCallback((event) => {
     setSearch(event.target.value);
@@ -132,19 +134,28 @@ export default function ResourcePage({ page }) {
     }
   };
 
-  const updateVideoSubmissionStatus = async (row, status) => {
+  const updateVideoSubmissionStatus = async (row, status, reason) => {
     const id = getRecordId(row);
     if (id === undefined || id === null) {
       toast.error("This submission does not include an ID and cannot be reviewed.");
       return;
     }
     const action = status === "approved" ? "approve" : "decline";
-    if (!window.confirm(`Are you sure you want to ${action} this film submission?`)) return;
+    if (status === "approved" && !window.confirm(`Are you sure you want to ${action} this film submission?`)) {
+      return;
+    }
 
     setBusy(true);
     try {
-      await api.put(API_ENDPOINTS.videos.updateSubmissionStatus(id), { status });
+      await api.put(API_ENDPOINTS.videos.updateSubmissionStatus(id), {
+        status,
+        ...(status === "rejected" ? { rejectionReason: reason } : {}),
+      });
       toast.success(`Submission ${status}.`);
+      if (status === "rejected") {
+        setVideoToReject(null);
+        setRejectionReason("");
+      }
       await loadRows();
     } catch (requestError) {
       toast.error(getApiErrorMessage(requestError));
@@ -377,13 +388,16 @@ export default function ResourcePage({ page }) {
               </IconButton>
             </Tooltip>
           )}
-          {config.videoActions && row.submissionStatus !== "rejected" && (
-            <Tooltip title="Decline submission">
+          {config.videoActions && (
+            <Tooltip title={row.submissionStatus === "rejected" ? "Retry rejection notification" : "Decline submission"}>
               <IconButton
                 size="small"
-                disabled={busy}
-                onClick={() => updateVideoSubmissionStatus(row, "rejected")}
-                aria-label="Decline submission"
+                disabled={busy || (row.submissionStatus === "rejected" && Boolean(row.reviewNotificationSentAt))}
+                onClick={() => {
+                  setVideoToReject(row);
+                  setRejectionReason(row.reviewReason ?? "");
+                }}
+                aria-label={row.submissionStatus === "rejected" ? "Retry rejection notification" : "Decline submission"}
                 color="error"
               >
                 <HighlightOff fontSize="small" />
@@ -498,6 +512,11 @@ export default function ResourcePage({ page }) {
         setViewUser={setViewUser}
         viewVideo={viewVideo}
         setViewVideo={setViewVideo}
+        videoToReject={videoToReject}
+        setVideoToReject={setVideoToReject}
+        rejectionReason={rejectionReason}
+        setRejectionReason={setRejectionReason}
+        submitVideoRejection={(reason) => updateVideoSubmissionStatus(videoToReject, "rejected", reason)}
         theme={theme}
       />
     </Box>
