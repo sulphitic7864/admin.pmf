@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import AdminPage from "../dashboard/AdminPage";
+import FilmFestivalManagement from "../dashboard/FilmFestivalManagement";
 
 export default function AdminShell() {
   const theme = useTheme();
@@ -43,6 +44,7 @@ export default function AdminShell() {
             <Route path="users" element={<AdminPage page="users" />} />
             <Route path="videos" element={<AdminPage page="videos" />} />
             <Route path="contactusemail" element={<AdminPage page="contacts" />} />
+            <Route path="film-festival" element={<FilmFestivalManagement />} />
             <Route path="*" element={<Navigate to="/dd" replace />} />
           </Routes>
         </Box>

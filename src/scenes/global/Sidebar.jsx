@@ -5,6 +5,7 @@ import {
   DashboardOutlined,
   EmailOutlined,
   FeedbackOutlined,
+  FestivalOutlined,
   LocalOfferOutlined,
   LogoutOutlined,
   MovieOutlined,
@@ -37,6 +38,7 @@ const navigation = [
   { label: "Users", path: "/users", icon: PeopleAltOutlined },
   { label: "All videos", path: "/videos", icon: MovieOutlined },
   { label: "Contact inbox", path: "/contactusemail", icon: EmailOutlined },
+  { label: "Film Festival", path: "/film-festival", icon: FestivalOutlined },
 ];
 
 export default function Sidebar({

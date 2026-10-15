@@ -48,6 +48,9 @@ export const API_ENDPOINTS = {
     update: byId("/payapi/updatePackageByID"),
     remove: byId("/payapi/deletePackageByID"),
   },
+  filmFestival: {
+    page: "/admin/film-festival/page",
+  },
   cart: {
     create: "/payapi/createCart",
     list: "/payapi/getAllCart",
