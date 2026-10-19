@@ -19,6 +19,7 @@ const defaultPage = {
   description: "Share your story with the world. Our film contest connects talented filmmakers with industry opportunities.",
   entryFee: "299.00",
   deadline: "March 31, 2026",
+  eligibleGenres: "Feature, Short, Documentary, Animation and More",
   benefits: [
     "Get your film in front of industry professionals",
     "Gain exposure and new opportunities",
@@ -31,6 +32,7 @@ const pageFields = [
   ["description", "Description"],
   ["entryFee", "Entry Fee (USD)"],
   ["deadline", "Submission Deadline"],
+  ["eligibleGenres", "Eligible Genres"],
 ];
 
 export default function FilmFestivalManagement() {
@@ -108,7 +110,7 @@ export default function FilmFestivalManagement() {
           <Box>
             <Typography variant="h6">Festival page content</Typography>
             <Typography variant="body2" color="text.secondary">
-              Only the heading, description, entry fee, deadline, and benefit points are editable here.
+              Edit the heading, description, entry fee, deadline, eligible genres, and benefit points shown publicly.
             </Typography>
           </Box>
           <Button type="submit" variant="contained" startIcon={<SaveOutlined />} disabled={loading || busy}>
@@ -127,11 +129,15 @@ export default function FilmFestivalManagement() {
                 onChange={(event) => setPage((current) => ({ ...current, [field]: event.target.value }))}
                 type={field === "entryFee" ? "number" : "text"}
                 inputProps={{
-                  maxLength: field === "heading" ? 150 : field === "description" ? 2000 : 150,
+                  maxLength: field === "heading" ? 150
+                    : field === "description" ? 2000
+                      : field === "eligibleGenres" ? 500
+                        : 150,
                   ...(field === "entryFee" ? { min: 0.01, step: "0.01" } : {}),
                 }}
-                multiline={field === "description"}
-                minRows={field === "description" ? 3 : undefined}
+                multiline={field === "description" || field === "eligibleGenres"}
+                minRows={field === "description" ? 3 : field === "eligibleGenres" ? 2 : undefined}
+                helperText={field === "eligibleGenres" ? "Displayed under Eligible Genres on the public contest page." : undefined}
                 fullWidth
                 required
               />
