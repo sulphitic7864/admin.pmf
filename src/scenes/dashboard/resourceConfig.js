@@ -174,7 +174,7 @@ export function normalizePaymentRow(row) {
     status: payment.status ?? row.status ?? "",
     packageTitle: packageDetails.title?.trim() ?? "",
     packageAmount: packageDetails.amount ?? "",
-    createdAt: payment.createdAt ?? row.createdAt,
+    createdAt: payment.purchaseDate ?? payment.createdAt ?? row.purchaseDate ?? row.createdAt,
   };
 }
 

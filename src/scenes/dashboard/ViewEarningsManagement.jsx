@@ -296,12 +296,12 @@ export default function ViewEarningsManagement() {
           <Table size="small" sx={{ borderCollapse: "separate", borderSpacing: 0 }}>
             <TableHead sx={{ backgroundColor: "rgba(7, 152, 181, 0.04)" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Date & time</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>User</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Views</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Rate</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Earned</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Month</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Date & time</TableCell>
+                {/* <TableCell sx={{ fontWeight: 700, color: "text.primary", borderBottom: "1px solid", borderColor: "divider" }}>Month</TableCell> */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -313,12 +313,12 @@ export default function ViewEarningsManagement() {
                     "&:hover": { backgroundColor: "rgba(7, 152, 181, 0.04)" },
                   }}
                 >
-                  <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{new Date(transaction.transactionDate).toLocaleString()}</TableCell>
                   <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{transaction.user?.username || transaction.user?.email || `User ${transaction.userId}`}</TableCell>
                   <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{Number(transaction.viewsAdded || 0).toLocaleString()}</TableCell>
                   <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{formatRate(transaction.ratePerView || 0)}</TableCell>
                   <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider", fontWeight: 600 }}>{formatCurrency(transaction.earnings || 0)}</TableCell>
-                  <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{transaction.month || "—"}</TableCell>
+                  <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{new Date(transaction.transactionDate).toLocaleString()}</TableCell>
+                  {/* <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }}>{transaction.month || "—"}</TableCell> */}
                 </TableRow>
               )) : (
                 <TableRow>
