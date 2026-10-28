@@ -228,77 +228,95 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
           </DialogActions>
         </Dialog>
       )}
-      {viewVideo && (
-        <Dialog
-          open
-          onClose={() => setViewVideo(null)}
-          fullWidth
-          maxWidth="lg"
-          PaperProps={{
-            sx: {
-              p: { xs: 1.5, sm: 2.5 },
-              backgroundColor: theme.palette.background.paper,
-              "--border": theme.palette.divider,
-              "--surface": theme.palette.background.paper,
-              "--surface-soft": theme.palette.action.hover,
-              "--text-primary": theme.palette.text.primary,
-              "--text-secondary": theme.palette.text.secondary,
-            },
-          }}
-        >
-          <DialogTitle sx={{ px: 0, pt: 0 }}>
-            {viewVideo.title || `Video #${viewVideo.id}`}
-          </DialogTitle>
-          <DialogContent sx={{ px: 0 }}>
-            <VideoPlayer video={viewVideo} />
-            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
-              <Chip size="small" label={`User ${viewVideo.user_id ?? "—"}`} />
-              <Chip size="small" label={`Package ${viewVideo.packageType ?? "—"}`} />
-              <Chip size="small" label={`${viewVideo.viewCount ?? 0} views`} />
-              {viewVideo.submissionStatus && (
-                <Chip size="small" label={viewVideo.submissionStatus} />
+      {viewVideo && (() => {
+        const rawSubmissionFiles = viewVideo.submissionFiles;
+        const normalizedSubmissionFiles = typeof rawSubmissionFiles === "string"
+          ? (() => {
+              try { return JSON.parse(rawSubmissionFiles); } catch (error) { return {}; }
+            })()
+          : rawSubmissionFiles || {};
+        const requiredSubmissionFields = [
+          ["keyArtPortrait", "Key Art (270x390)"],
+          ["keyArtLandscape", "Key Art (800x450)"],
+          ["keyArtWide", "Key Art (1920x720)"],
+          ["keyArtFullHd", "Key Art (1920x1080)"],
+          ["subtitleFile", "Subtitle File SRT"],
+          ["metadataFile", "Meta Data"],
+          ["video", "Video File (MP4)"],
+        ];
+        const availableDownloads = requiredSubmissionFields.filter(([field]) => Boolean(normalizedSubmissionFiles[field]));
+
+        return (
+          <Dialog
+            open
+            onClose={() => setViewVideo(null)}
+            fullWidth
+            maxWidth="lg"
+            PaperProps={{
+              sx: {
+                p: { xs: 1.5, sm: 2.5 },
+                backgroundColor: theme.palette.background.paper,
+                "--border": theme.palette.divider,
+                "--surface": theme.palette.background.paper,
+                "--surface-soft": theme.palette.action.hover,
+                "--text-primary": theme.palette.text.primary,
+                "--text-secondary": theme.palette.text.secondary,
+              },
+            }}
+          >
+            <DialogTitle sx={{ px: 0, pt: 0 }}>
+              {viewVideo.title || `Video #${viewVideo.id}`}
+            </DialogTitle>
+            <DialogContent sx={{ px: 0 }}>
+              <VideoPlayer video={viewVideo} />
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
+                <Chip size="small" label={`User ${viewVideo.user_id ?? "—"}`} />
+                <Chip size="small" label={`Package ${viewVideo.packageType ?? "—"}`} />
+                <Chip size="small" label={`${viewVideo.viewCount ?? 0} views`} />
+                {viewVideo.submissionStatus && (
+                  <Chip size="small" label={viewVideo.submissionStatus} />
+                )}
+              </Stack>
+              {availableDownloads.length > 0 && (
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2">Required submission files</Typography>
+                  {requiredSubmissionFields.map(([field, label]) => {
+                    const fileUrl = normalizedSubmissionFiles[field];
+                    return fileUrl ? (
+                      <Button
+                        key={field}
+                        component="a"
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        size="small"
+                        variant="outlined"
+                        sx={{ alignSelf: "flex-start", textTransform: "none" }}
+                      >
+                        {label}
+                      </Button>
+                    ) : null;
+                  })}
+                </Stack>
               )}
-            </Stack>
-            {viewVideo.submissionFiles && Object.keys(viewVideo.submissionFiles).length > 0 && (
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                <Typography variant="subtitle2">Required submission files</Typography>
-                {[
-                  ["keyArtPortrait", "Key Art (270x390)"],
-                  ["keyArtLandscape", "Key Art (800x450)"],
-                  ["keyArtWide", "Key Art (1920x720)"],
-                  ["keyArtFullHd", "Key Art (1920x1080)"],
-                  ["subtitleFile", "Subtitle File SRT"],
-                  ["metadataFile", "Meta Data"],
-                  ["video", "Video File (MP4)"],
-                ].map(([field, label]) => {
-                  const fileUrl = viewVideo.submissionFiles[field];
-                  return fileUrl ? (
-                    <Button
-                      key={field}
-                      component="a"
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      size="small"
-                      variant="outlined"
-                      sx={{ alignSelf: "flex-start", textTransform: "none" }}
-                    >
-                      {label}
-                    </Button>
-                  ) : (
+              {availableDownloads.length === 0 && (
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2">Required submission files</Typography>
+                  {requiredSubmissionFields.map(([field, label]) => (
                     <Typography key={field} variant="body2" color="error">
                       Missing: {label}
                     </Typography>
-                  );
-                })}
-              </Stack>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ px: 0, pb: 0 }}>
-            <Button variant="contained" onClick={() => setViewVideo(null)}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      )}
+                  ))}
+                </Stack>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ px: 0, pb: 0 }}>
+              <Button variant="contained" onClick={() => setViewVideo(null)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        );
+      })()}
       {videoToReject && (
         <Dialog
           open

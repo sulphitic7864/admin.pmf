@@ -47,14 +47,19 @@ export default function FilmFestivalManagement() {
       if (!data?.status || !data?.result) {
         throw new Error(data?.message || "Festival page settings could not be loaded.");
       }
-      setPage({
+      const nextPage = {
         ...defaultPage,
         ...data.result,
-        entryFee: String(data.result.entryFee ?? defaultPage.entryFee),
-        benefits: Array.isArray(data.result.benefits)
+        heading: String(data.result?.heading ?? defaultPage.heading).trim() || defaultPage.heading,
+        description: String(data.result?.description ?? defaultPage.description).trim() || defaultPage.description,
+        deadline: String(data.result?.deadline ?? defaultPage.deadline).trim() || defaultPage.deadline,
+        eligibleGenres: String(data.result?.eligibleGenres ?? defaultPage.eligibleGenres).trim() || defaultPage.eligibleGenres,
+        entryFee: String(data.result?.entryFee ?? defaultPage.entryFee),
+        benefits: Array.isArray(data.result?.benefits)
           ? data.result.benefits
           : defaultPage.benefits,
-      });
+      };
+      setPage(nextPage);
     } catch (error) {
       toast.error(getApiErrorMessage(error));
     } finally {
@@ -87,7 +92,12 @@ export default function FilmFestivalManagement() {
       setPage({
         ...defaultPage,
         ...data.result,
-        entryFee: String(data.result.entryFee),
+        heading: String(data.result?.heading ?? defaultPage.heading).trim() || defaultPage.heading,
+        description: String(data.result?.description ?? defaultPage.description).trim() || defaultPage.description,
+        deadline: String(data.result?.deadline ?? defaultPage.deadline).trim() || defaultPage.deadline,
+        eligibleGenres: String(data.result?.eligibleGenres ?? defaultPage.eligibleGenres).trim() || defaultPage.eligibleGenres,
+        entryFee: String(data.result?.entryFee ?? defaultPage.entryFee),
+        benefits: Array.isArray(data.result?.benefits) ? data.result.benefits : defaultPage.benefits,
       });
       toast.success("Film Festival page published.");
     } catch (error) {
