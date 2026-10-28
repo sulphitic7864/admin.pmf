@@ -51,6 +51,12 @@ export const API_ENDPOINTS = {
   filmFestival: {
     page: "/admin/film-festival/page",
   },
+  viewEarnings: {
+    users: "/admin/view-earnings/users",
+    summary: (id) => `/admin/view-earnings/users/${encodeURIComponent(id)}/summary`,
+    setRate: (id) => `/admin/view-earnings/users/${encodeURIComponent(id)}/rate`,
+    transactions: "/admin/view-earnings/transactions",
+  },
   cart: {
     create: "/payapi/createCart",
     list: "/payapi/getAllCart",

@@ -11,6 +11,7 @@ import {
   MovieOutlined,
   PaymentsOutlined,
   PeopleAltOutlined,
+  TrendingUpOutlined,
 } from "@mui/icons-material";
 import {
   Box,
@@ -31,15 +32,20 @@ import logo from "../../assets/logo.png";
 
 const navigation = [
   { label: "Dashboard", path: "/dd", icon: DashboardOutlined },
-  { label: "Blogs", path: "/blog", icon: ArticleOutlined },
-  { label: "Payments", path: "/payments", icon: PaymentsOutlined },
-  { label: "Feedbacks", path: "/feedback", icon: FeedbackOutlined },
-  { label: "Coupons", path: "/coupons", icon: LocalOfferOutlined },
-  { label: "Users", path: "/users", icon: PeopleAltOutlined },
   { label: "All videos", path: "/videos", icon: MovieOutlined },
+  { label: "Blogs", path: "/blog", icon: ArticleOutlined },
   { label: "Contact inbox", path: "/contactusemail", icon: EmailOutlined },
+  { label: "Coupons", path: "/coupons", icon: LocalOfferOutlined },
+  { label: "Feedbacks", path: "/feedback", icon: FeedbackOutlined },
   { label: "Film Festival", path: "/film-festival", icon: FestivalOutlined },
-];
+  { label: "Payments", path: "/payments", icon: PaymentsOutlined },
+  { label: "Users", path: "/users", icon: PeopleAltOutlined },
+  { label: "Views & Earnings", path: "/views-earnings", icon: TrendingUpOutlined },
+].sort((a, b) => {
+  if (a.label === "Dashboard") return -1;
+  if (b.label === "Dashboard") return 1;
+  return a.label.localeCompare(b.label);
+});
 
 export default function Sidebar({
   mobileOpen,

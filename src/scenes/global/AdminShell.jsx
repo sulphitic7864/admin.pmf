@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import AdminPage from "../dashboard/AdminPage";
 import FilmFestivalManagement from "../dashboard/FilmFestivalManagement";
+import ViewEarningsManagement from "../dashboard/ViewEarningsManagement";
 
 export default function AdminShell() {
   const theme = useTheme();
@@ -39,6 +40,7 @@ export default function AdminShell() {
             <Route path="dashboard" element={<Navigate to="/dd" replace />} />
             <Route path="blog" element={<AdminPage page="blogs" />} />
             <Route path="payments" element={<AdminPage page="payments" />} />
+            <Route path="views-earnings" element={<ViewEarningsManagement />} />
             <Route path="feedback" element={<AdminPage page="feedback" />} />
             <Route path="coupons" element={<AdminPage page="coupons" />} />
             <Route path="users" element={<AdminPage page="users" />} />
