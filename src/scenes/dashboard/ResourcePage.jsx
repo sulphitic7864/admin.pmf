@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AddRounded, ArticleOutlined, CheckCircleOutline, DeleteOutline, EditOutlined, HighlightOff, RefreshRounded, VisibilityOutlined } from "@mui/icons-material";
-import { Avatar, Box, Button, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { AddRounded, ArticleOutlined, CheckCircleOutline, DeleteForeverOutlined, DeleteOutline, EditOutlined, HighlightOff, MoreVertOutlined, RefreshRounded, VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
+import { Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
 import { API_ENDPOINTS } from "../../api/endpoints";
@@ -29,8 +29,23 @@ export default function ResourcePage({ page }) {
   const [videoToReject, setVideoToReject] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [actionMenu, setActionMenu] = useState({ anchorEl: null, rowKey: null });
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    danger: false,
+    onConfirm: null,
+  });
   const handleSearchChange = useCallback((event) => {
     setSearch(event.target.value);
+  }, []);
+  const openConfirmDialog = useCallback(({ title, message, confirmLabel = "Confirm", danger = false, onConfirm }) => {
+    setConfirmDialog({ open: true, title, message, confirmLabel, danger, onConfirm });
+  }, []);
+  const closeConfirmDialog = useCallback(() => {
+    setConfirmDialog((current) => ({ ...current, open: false, onConfirm: null }));
   }, []);
 
   const loadRows = useCallback(async () => {
@@ -97,26 +112,33 @@ export default function ResourcePage({ page }) {
       toast.error("This record does not include an ID and cannot be removed.");
       return;
     }
-    if (!window.confirm(`Delete this ${config.title.toLowerCase().replace(/s$/, "")} record? This cannot be undone.`)) return;
 
-    setBusy(true);
-    try {
-      const endpointMap = {
-        blogs: API_ENDPOINTS.blogs.remove,
-        feedback: API_ENDPOINTS.feedback.remove,
-        coupons: API_ENDPOINTS.coupons.remove,
-        users: API_ENDPOINTS.users.remove,
-        videos: API_ENDPOINTS.videos.removeVideo,
-        contacts: API_ENDPOINTS.contacts.remove,
-      };
-      await api.delete(endpointMap[page](id));
-      toast.success("Record deleted successfully.");
-      await loadRows();
-    } catch (requestError) {
-      toast.error(getApiErrorMessage(requestError));
-    } finally {
-      setBusy(false);
-    }
+    openConfirmDialog({
+      title: "Delete Record",
+      message: `Delete this ${config.title.toLowerCase().replace(/s$/, "")} record? This cannot be undone.`,
+      confirmLabel: "Delete",
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        try {
+          const endpointMap = {
+            blogs: API_ENDPOINTS.blogs.remove,
+            feedback: API_ENDPOINTS.feedback.remove,
+            coupons: API_ENDPOINTS.coupons.remove,
+            users: API_ENDPOINTS.users.remove,
+            videos: API_ENDPOINTS.videos.removeVideo,
+            contacts: API_ENDPOINTS.contacts.remove,
+          };
+          await api.delete(endpointMap[page](id));
+          toast.success("Record deleted successfully.");
+          await loadRows();
+        } catch (requestError) {
+          toast.error(getApiErrorMessage(requestError));
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
   };
 
   const toggleBlogStatus = async (row) => {
@@ -140,28 +162,103 @@ export default function ResourcePage({ page }) {
       toast.error("This submission does not include an ID and cannot be reviewed.");
       return;
     }
+
     const action = status === "approved" ? "approve" : "decline";
-    if (status === "approved" && !window.confirm(`Are you sure you want to ${action} this film submission?`)) {
+    const confirmConfig = status === "approved"
+      ? {
+        title: "Approve submission",
+        message: `Are you sure you want to approve this film submission?`,
+        confirmLabel: "Approve",
+        danger: false,
+      }
+      : {
+        title: "Decline submission",
+        message: `Are you sure you want to decline this film submission?`,
+        confirmLabel: "Decline",
+        danger: false,
+      };
+
+    openConfirmDialog({
+      ...confirmConfig,
+      onConfirm: async () => {
+        setBusy(true);
+        try {
+          await api.put(API_ENDPOINTS.videos.updateSubmissionStatus(id), {
+            status,
+            ...(status === "rejected" ? { rejectionReason: reason } : {}),
+          });
+          toast.success(`Submission ${status}.`);
+          if (status === "rejected") {
+            setVideoToReject(null);
+            setRejectionReason("");
+          }
+          await loadRows();
+        } catch (requestError) {
+          toast.error(getApiErrorMessage(requestError));
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
+  };
+
+  const deleteSubmissionFiles = async (row) => {
+    const id = getRecordId(row);
+    if (id === undefined || id === null) {
+      toast.error("This submission does not include an ID and cannot be updated.");
       return;
     }
 
-    setBusy(true);
-    try {
-      await api.put(API_ENDPOINTS.videos.updateSubmissionStatus(id), {
-        status,
-        ...(status === "rejected" ? { rejectionReason: reason } : {}),
-      });
-      toast.success(`Submission ${status}.`);
-      if (status === "rejected") {
-        setVideoToReject(null);
-        setRejectionReason("");
-      }
-      await loadRows();
-    } catch (requestError) {
-      toast.error(getApiErrorMessage(requestError));
-    } finally {
-      setBusy(false);
+    openConfirmDialog({
+      title: "Delete files from server",
+      message: "Delete this submission's uploaded files from the server? This keeps the film metadata and key art record intact.",
+      confirmLabel: "Delete",
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        try {
+          await api.delete(API_ENDPOINTS.videos.deleteSubmissionFiles(id));
+          toast.success("Submission files deleted from the server.");
+          await loadRows();
+        } catch (requestError) {
+          toast.error(getApiErrorMessage(requestError));
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
+  };
+
+  const toggleVideoFrontendVisibility = async (row, hidden) => {
+    const id = getRecordId(row);
+    if (id === undefined || id === null) {
+      toast.error("This submission does not include an ID and cannot be updated.");
+      return;
     }
+
+    const confirmationTitle = hidden ? "Hide video from frontend" : "Restore video on frontend";
+    const confirmationMessage = hidden
+      ? "Hide this video from the frontend while keeping the film key art and metadata?"
+      : "Restore this video on the frontend?";
+
+    openConfirmDialog({
+      title: confirmationTitle,
+      message: confirmationMessage,
+      confirmLabel: hidden ? "Hide" : "Restore",
+      danger: false,
+      onConfirm: async () => {
+        setBusy(true);
+        try {
+          await api.put(API_ENDPOINTS.videos.toggleFrontendVisibility(id), { hidden });
+          toast.success(hidden ? "Video hidden from the frontend." : "Video restored on the frontend.");
+          await loadRows();
+        } catch (requestError) {
+          toast.error(getApiErrorMessage(requestError));
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
   };
 
   const openCouponEditor = (row) => {
@@ -258,6 +355,86 @@ export default function ResourcePage({ page }) {
     }
   };
 
+  const actionMenuItems = (row) => {
+    const rowKey = getRecordId(row);
+    const items = [];
+
+    if (config.paymentActions) {
+      items.push({
+        label: "View payment details",
+        onClick: () => setViewPayment(row),
+        Icon: VisibilityOutlined,
+      });
+    }
+    if (config.userActions) {
+      items.push({
+        label: "View user details",
+        onClick: () => setViewUser(row),
+        Icon: VisibilityOutlined,
+      });
+    }
+    if (config.couponActions) {
+      items.push({
+        label: "Edit coupon",
+        onClick: () => openCouponEditor(row),
+        Icon: EditOutlined,
+      });
+    }
+    if (config.blogActions) {
+      items.push({
+        label: "View blog",
+        onClick: () => setViewBlog(row),
+        Icon: VisibilityOutlined,
+      });
+      items.push({
+        label: "Edit blog",
+        onClick: () => openBlogEditor(row),
+        Icon: EditOutlined,
+      });
+      items.push({
+        label: row.status === "Active" ? "Deactivate blog" : "Activate blog",
+        onClick: () => toggleBlogStatus(row),
+        Icon: CheckCircleOutline,
+      });
+    }
+    if (config.videoActions) {
+      if (row.submissionStatus !== "approved") {
+        items.push({
+          label: "Approve submission",
+          onClick: () => updateVideoSubmissionStatus(row, "approved"),
+          Icon: CheckCircleOutline,
+        });
+      }
+      items.push({
+        label: row.submissionStatus === "rejected" ? "Retry rejection notification" : "Decline submission",
+        onClick: () => {
+          setVideoToReject(row);
+          setRejectionReason(row.reviewReason ?? "");
+        },
+        Icon: HighlightOff,
+      });
+      items.push({
+        label: row.isFrontendHidden ? "Restore video on frontend" : "Remove video from frontend",
+        onClick: () => toggleVideoFrontendVisibility(row, !row.isFrontendHidden),
+        Icon: VisibilityOffOutlined,
+      });
+      items.push({
+        label: "Delete files from server",
+        onClick: () => deleteSubmissionFiles(row),
+        Icon: DeleteOutline,
+      });
+    }
+    if (config.deletable) {
+      items.push({
+        label: "Delete Record",
+        onClick: () => performDelete(row),
+        Icon: DeleteForeverOutlined,
+      });
+    }
+
+    return { rowKey, items };
+  };
+
   const columns = [
     ...(config.videoActions
       ? [{
@@ -327,92 +504,56 @@ export default function ResourcePage({ page }) {
     ...(config.deletable || config.blogActions || config.couponActions || config.paymentActions || config.userActions || config.videoActions ? [{
       field: "actions",
       headerName: "Actions",
-      width: config.blogActions ? 195 : config.couponActions ? 125 : config.userActions ? 105 : config.videoActions ? 210 : 75,
+      width: config.blogActions ? 195 : config.couponActions ? 125 : config.userActions ? 105 : config.videoActions ? 120 : 75,
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
-      renderCell: ({ row }) => (
-        <Stack direction="row" spacing={0.5}>
-          {config.paymentActions && (
-            <Tooltip title="View payment details">
-              <IconButton size="small" onClick={() => setViewPayment(row)} aria-label="View payment details">
-                <VisibilityOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.userActions && (
-            <Tooltip title="View user details">
-              <IconButton size="small" onClick={() => setViewUser(row)} aria-label="View user details">
-                <VisibilityOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.couponActions && (
-            <Tooltip title="Edit coupon">
-              <IconButton size="small" onClick={() => openCouponEditor(row)} aria-label="Edit coupon">
-                <EditOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.blogActions && (
-            <Tooltip title="View blog">
-              <IconButton size="small" onClick={() => setViewBlog(row)} aria-label="View blog">
-                <VisibilityOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.blogActions && (
-            <Tooltip title="Edit blog">
-              <IconButton size="small" onClick={() => openBlogEditor(row)} aria-label="Edit blog">
-                <EditOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.blogActions && (
-            <Tooltip title={row.status === "Active" ? "Deactivate blog" : "Activate blog"}>
-              <IconButton size="small" disabled={busy} onClick={() => toggleBlogStatus(row)} aria-label="Toggle blog status">
-                <CheckCircleOutline fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.videoActions && row.submissionStatus !== "approved" && (
-            <Tooltip title="Approve submission">
-              <IconButton
-                size="small"
-                disabled={busy}
-                onClick={() => updateVideoSubmissionStatus(row, "approved")}
-                aria-label="Approve submission"
-                color="success"
-              >
-                <CheckCircleOutline fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.videoActions && (
-            <Tooltip title={row.submissionStatus === "rejected" ? "Retry rejection notification" : "Decline submission"}>
-              <IconButton
-                size="small"
-                disabled={busy || (row.submissionStatus === "rejected" && Boolean(row.reviewNotificationSentAt))}
-                onClick={() => {
-                  setVideoToReject(row);
-                  setRejectionReason(row.reviewReason ?? "");
-                }}
-                aria-label={row.submissionStatus === "rejected" ? "Retry rejection notification" : "Decline submission"}
-                color="error"
-              >
-                <HighlightOff fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          {config.deletable && (
-            <Tooltip title="Delete record">
-              <IconButton size="small" disabled={busy} onClick={() => performDelete(row)} aria-label="Delete record" color="error">
-                <DeleteOutline fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Stack>
-      ),
+      renderCell: ({ row }) => {
+        const currentRowKey = getRecordId(row);
+        const { items } = actionMenuItems(row);
+        const isMenuOpen = actionMenu.rowKey === currentRowKey && Boolean(actionMenu.anchorEl);
+
+        return (
+          <>
+            <IconButton
+              size="small"
+              onClick={(event) => setActionMenu({ anchorEl: event.currentTarget, rowKey: currentRowKey })}
+              aria-label="Open actions menu"
+              aria-controls={isMenuOpen ? "resource-row-actions-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={isMenuOpen ? "true" : undefined}
+              sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1.5 }}
+            >
+              <MoreVertOutlined fontSize="small" />
+            </IconButton>
+            <Menu
+              id={isMenuOpen ? "resource-row-actions-menu" : undefined}
+              anchorEl={actionMenu.anchorEl}
+              open={isMenuOpen}
+              onClose={() => setActionMenu({ anchorEl: null, rowKey: null })}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              slotProps={{ paper: { sx: { minWidth: 210, mt: 0.5 } } }}
+            >
+              {items.map(({ label, onClick, Icon }) => (
+                <MenuItem
+                  key={label}
+                  onClick={() => {
+                    onClick();
+                    setActionMenu({ anchorEl: null, rowKey: null });
+                  }}
+                  sx={{ gap: 1 }}
+                >
+                  <ListItemIcon>
+                    <Icon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText sx={{ textTransform: "capitalize" }}>{label}</ListItemText>
+                </MenuItem>
+              ))}
+            </Menu>
+          </>
+        );
+      },
     }] : []),
   ];
 
@@ -519,6 +660,28 @@ export default function ResourcePage({ page }) {
         submitVideoRejection={(reason) => updateVideoSubmissionStatus(videoToReject, "rejected", reason)}
         theme={theme}
       />
+
+      <Dialog open={confirmDialog.open} onClose={closeConfirmDialog} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ textTransform: "capitalize" }}>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2.5 }}>
+          <Button onClick={closeConfirmDialog}>Cancel</Button>
+          <Button
+            color={confirmDialog.danger ? "error" : "primary"}
+            variant={confirmDialog.danger ? "contained" : "outlined"}
+            onClick={() => {
+              closeConfirmDialog();
+              if (confirmDialog.onConfirm) {
+                confirmDialog.onConfirm();
+              }
+            }}
+          >
+            {confirmDialog.confirmLabel}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

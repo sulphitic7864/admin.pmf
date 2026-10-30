@@ -1,7 +1,29 @@
+import { useState } from "react";
+import { DeleteOutline, DownloadOutlined, VisibilityOffOutlined } from "@mui/icons-material";
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { toast } from "react-toastify";
+import { api, getApiErrorMessage } from "../../api/client";
+import { API_ENDPOINTS } from "../../api/endpoints";
 import { BlogPreview, PaymentDetail, UserDetail, VideoPlayer } from "./ResourceComponents";
 
 export default function ResourceDialogs({ couponDialog, setCouponDialog, couponDraft, setCouponDraft, saveCoupon, blogDialog, setBlogDialog, blogDraft, setBlogDraft, blogImage, setBlogImage, saveBlog, busy, viewBlog, setViewBlog, viewPayment, setViewPayment, viewUser, setViewUser, viewVideo, setViewVideo, videoToReject, setVideoToReject, rejectionReason, setRejectionReason, submitVideoRejection, theme }) {
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    danger: false,
+    onConfirm: null,
+  });
+
+  const openConfirmDialog = ({ title, message, confirmLabel = "Confirm", danger = false, onConfirm }) => {
+    setConfirmDialog({ open: true, title, message, confirmLabel, danger, onConfirm });
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog((current) => ({ ...current, open: false, onConfirm: null }));
+  };
+
   return (
     <>
       {couponDialog && (
@@ -244,7 +266,61 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
           ["metadataFile", "Meta Data"],
           ["video", "Video File (MP4)"],
         ];
+        const triggerFileDownload = async (fileUrl, fileName) => {
+          try {
+            const response = await fetch(fileUrl);
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = objectUrl;
+            link.download = fileName;
+            link.rel = "noopener";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(objectUrl);
+          } catch (error) {
+            console.error("Unable to download file:", error);
+            window.open(fileUrl, "_blank", "noopener,noreferrer");
+          }
+        };
         const availableDownloads = requiredSubmissionFields.filter(([field]) => Boolean(normalizedSubmissionFiles[field]));
+        const deleteSubmissionFiles = async () => {
+          openConfirmDialog({
+            title: "Delete files from server",
+            message: "Delete this submission's uploaded files from the server? This keeps the film metadata and key art record intact.",
+            confirmLabel: "Delete",
+            danger: true,
+            onConfirm: async () => {
+              try {
+                await api.delete(API_ENDPOINTS.videos.deleteSubmissionFiles(viewVideo.id));
+                toast.success("Submission files removed from the server.");
+                window.location.reload();
+              } catch (error) {
+                toast.error(getApiErrorMessage(error));
+              }
+            },
+          });
+        };
+        const toggleFrontendVisibility = async (hidden) => {
+          openConfirmDialog({
+            title: hidden ? "Hide video from frontend" : "Restore video on frontend",
+            message: hidden
+              ? "Hide this video from the frontend while keeping the film key art and metadata?"
+              : "Restore this video on the frontend?",
+            confirmLabel: hidden ? "Hide" : "Restore",
+            danger: false,
+            onConfirm: async () => {
+              try {
+                await api.put(API_ENDPOINTS.videos.toggleFrontendVisibility(viewVideo.id), { hidden });
+                toast.success(hidden ? "Video hidden from the frontend." : "Video restored on the frontend.");
+                window.location.reload();
+              } catch (error) {
+                toast.error(getApiErrorMessage(error));
+              }
+            },
+          });
+        };
 
         return (
           <Dialog
@@ -279,35 +355,87 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
               </Stack>
               {availableDownloads.length > 0 && (
                 <Stack spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2">Required submission files</Typography>
-                  {requiredSubmissionFields.map(([field, label]) => {
-                    const fileUrl = normalizedSubmissionFiles[field];
-                    return fileUrl ? (
-                      <Button
-                        key={field}
-                        component="a"
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        download
-                        size="small"
-                        variant="outlined"
-                        sx={{ alignSelf: "flex-start", textTransform: "none" }}
-                      >
-                        {label}
-                      </Button>
-                    ) : null;
-                  })}
+                  <Typography variant="subtitle2">Required Submission Files</Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1.25 }}>
+                    {requiredSubmissionFields.map(([field, label]) => {
+                      const fileUrl = normalizedSubmissionFiles[field];
+                      return fileUrl ? (
+                        <Button
+                          key={field}
+                          component="a"
+                          href={fileUrl}
+                          download={label}
+                          size="small"
+                          variant="contained"
+                          color="primary"
+                          startIcon={<DownloadOutlined fontSize="small" />}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            triggerFileDownload(fileUrl, label);
+                          }}
+                          sx={{
+                            minWidth: 0,
+                            px: 1.5,
+                            py: 0.75,
+                            borderRadius: 2,
+                            textTransform: "none",
+                            whiteSpace: "nowrap",
+                            boxShadow: "none",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {label}
+                        </Button>
+                      ) : null;
+                    })}
+                  </Stack>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      autoCapitalize
+                      startIcon={<DeleteOutline fontSize="small" />}
+                      onClick={deleteSubmissionFiles}
+                    >
+                      Delete files from server
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<VisibilityOffOutlined fontSize="small" />}
+                      onClick={() => toggleFrontendVisibility(!viewVideo.isFrontendHidden)}
+                    >
+                      {viewVideo.isFrontendHidden ? "Restore on frontend" : "Remove from frontend"}
+                    </Button>
+                  </Stack>
                 </Stack>
               )}
               {availableDownloads.length === 0 && (
                 <Stack spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2">Required submission files</Typography>
+                  <Typography variant="subtitle2">Required Submission Files</Typography>
                   {requiredSubmissionFields.map(([field, label]) => (
                     <Typography key={field} variant="body2" color="error">
                       Missing: {label}
                     </Typography>
                   ))}
+                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteOutline fontSize="small" />}
+                      onClick={deleteSubmissionFiles}
+                    >
+                      Delete files from server
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<VisibilityOffOutlined fontSize="small" />}
+                      onClick={() => toggleFrontendVisibility(!viewVideo.isFrontendHidden)}
+                    >
+                      {viewVideo.isFrontendHidden ? "Restore on frontend" : "Remove from frontend"}
+                    </Button>
+                  </Stack>
                 </Stack>
               )}
             </DialogContent>
@@ -369,6 +497,27 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
           </DialogActions>
         </Dialog>
       )}
+      <Dialog open={confirmDialog.open} onClose={closeConfirmDialog} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ textTransform: "capitalize" }}>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2.5 }}>
+          <Button onClick={closeConfirmDialog}>Cancel</Button>
+          <Button
+            color={confirmDialog.danger ? "error" : "primary"}
+            variant={confirmDialog.danger ? "contained" : "outlined"}
+            onClick={() => {
+              closeConfirmDialog();
+              if (confirmDialog.onConfirm) {
+                confirmDialog.onConfirm();
+              }
+            }}
+          >
+            {confirmDialog.confirmLabel}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
