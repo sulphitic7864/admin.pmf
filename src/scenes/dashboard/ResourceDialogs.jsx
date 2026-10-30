@@ -251,6 +251,13 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
         </Dialog>
       )}
       {viewVideo && (() => {
+        const formatUserLabel = (video) => {
+          const userId = video?.user_id ?? video?.user?.id ?? video?.userId ?? null;
+          const username = video?.user?.username ?? video?.username ?? "";
+          if (!userId && !username) return "User —";
+          if (username) return userId ? `${userId} - ${username}` : username;
+          return `User ${userId}`;
+        };
         const rawSubmissionFiles = viewVideo.submissionFiles;
         const normalizedSubmissionFiles = typeof rawSubmissionFiles === "string"
           ? (() => {
@@ -346,7 +353,7 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
             <DialogContent sx={{ px: 0 }}>
               <VideoPlayer video={viewVideo} />
               <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
-                <Chip size="small" label={`User ${viewVideo.user_id ?? "—"}`} />
+                <Chip size="small" label={formatUserLabel(viewVideo)} />
                 <Chip size="small" label={`Package ${viewVideo.packageType ?? "—"}`} />
                 <Chip size="small" label={`${viewVideo.viewCount ?? 0} views`} />
                 {viewVideo.submissionStatus && (
@@ -389,25 +396,6 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
                       ) : null;
                     })}
                   </Stack>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      autoCapitalize
-                      startIcon={<DeleteOutline fontSize="small" />}
-                      onClick={deleteSubmissionFiles}
-                    >
-                      Delete files from server
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<VisibilityOffOutlined fontSize="small" />}
-                      onClick={() => toggleFrontendVisibility(!viewVideo.isFrontendHidden)}
-                    >
-                      {viewVideo.isFrontendHidden ? "Restore on frontend" : "Remove from frontend"}
-                    </Button>
-                  </Stack>
                 </Stack>
               )}
               {availableDownloads.length === 0 && (
@@ -418,28 +406,28 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
                       Missing: {label}
                     </Typography>
                   ))}
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteOutline fontSize="small" />}
-                      onClick={deleteSubmissionFiles}
-                    >
-                      Delete files from server
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<VisibilityOffOutlined fontSize="small" />}
-                      onClick={() => toggleFrontendVisibility(!viewVideo.isFrontendHidden)}
-                    >
-                      {viewVideo.isFrontendHidden ? "Restore on frontend" : "Remove from frontend"}
-                    </Button>
-                  </Stack>
                 </Stack>
               )}
             </DialogContent>
-            <DialogActions sx={{ px: 0, pb: 0 }}>
+            <DialogActions sx={{ px: 0, pb: 0, pt: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ justifyContent: "flex-start" }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteOutline fontSize="small" />}
+                  onClick={deleteSubmissionFiles}
+                >
+                  Delete files from server
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<VisibilityOffOutlined fontSize="small" />}
+                  onClick={() => toggleFrontendVisibility(!viewVideo.isFrontendHidden)}
+                >
+                  {viewVideo.isFrontendHidden ? "Restore on frontend" : "Remove from frontend"}
+                </Button>
+              </Stack>
               <Button variant="contained" onClick={() => setViewVideo(null)}>Close</Button>
             </DialogActions>
           </Dialog>

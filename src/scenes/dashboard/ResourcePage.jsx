@@ -497,7 +497,7 @@ export default function ResourcePage({ page }) {
           const display = `$${value}`;
           return <Typography className="table-cell-text" title={display}>{display}</Typography>;
         }
-        const display = formatCell(value, field);
+        const display = formatCell(value, field, row);
         return <Typography className="table-cell-text" title={display}>{display}</Typography>;
       },
     })),

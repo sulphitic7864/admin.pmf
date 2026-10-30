@@ -92,7 +92,7 @@ export const resourceConfig = {
     columns: [
       ["id", "ID", 85],
       ["title", "Title", 220],
-      ["user_id", "User ID", 100],
+      ["user_id", "User", 120],
       ["packageType", "Package", 110],
       ["festivalId", "Festival ID", 110],
       ["submissionStatus", "Submission status", 165],
@@ -134,13 +134,19 @@ export function getRecordId(row) {
   return row.id ?? row.ID ?? row.pay_id;
 }
 
-export function formatCell(value, field) {
+export function formatCell(value, field, row = {}) {
   if (value === null || value === undefined || value === "") return "—";
   if (field === "createdAt" || field === "updatedAt") {
     const date = new Date(value);
     return Number.isNaN(date.getTime())
       ? String(value)
       : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+  }
+  if (field === "user_id") {
+    const username = row?.user?.username ?? row?.username ?? "";
+    const numericId = row?.user_id ?? value;
+    if (username) return `${numericId} - ${username}`;
+    return String(numericId);
   }
   return String(value);
 }
