@@ -120,6 +120,7 @@ export const API_ENDPOINTS = {
     updateSubmissionStatus: byId("/videosUpload/admin/updateSubmissionStatus"),
     adminUpdate: byId("/videosUpload/admin/update"),
     remove: byId("/videosUpload/admin/deleteById"),
+    downloadSubmissionFile: (id, field) => `/videosUpload/admin/download/${encodeURIComponent(id)}/${encodeURIComponent(field)}`,
     deleteSubmissionFiles: (id) => `/videosUpload/admin/delete-submission-files/${encodeURIComponent(id)}`,
     toggleFrontendVisibility: (id) => `/videosUpload/admin/frontend-visibility/${encodeURIComponent(id)}`,
     byAdmin: "/videosUpload/admin/getByAdminId",

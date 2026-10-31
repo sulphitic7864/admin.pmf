@@ -273,10 +273,12 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
           ["metadataFile", "Meta Data"],
           ["video", "Video File (MP4)"],
         ];
-        const triggerFileDownload = async (fileUrl, fileName) => {
+        const triggerFileDownload = async (field, fileUrl, fileName) => {
           try {
-            const response = await fetch(fileUrl);
-            const blob = await response.blob();
+            const response = await api.get(API_ENDPOINTS.videos.downloadSubmissionFile(viewVideo.id, field), {
+              responseType: "blob",
+            });
+            const blob = new Blob([response.data], { type: response.headers["content-type"] || "application/octet-stream" });
             const objectUrl = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = objectUrl;
@@ -288,7 +290,9 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
             URL.revokeObjectURL(objectUrl);
           } catch (error) {
             console.error("Unable to download file:", error);
-            window.open(fileUrl, "_blank", "noopener,noreferrer");
+            if (fileUrl) {
+              window.open(fileUrl, "_blank", "noopener,noreferrer");
+            }
           }
         };
         const availableDownloads = requiredSubmissionFields.filter(([field]) => Boolean(normalizedSubmissionFiles[field]));
@@ -378,7 +382,7 @@ export default function ResourceDialogs({ couponDialog, setCouponDialog, couponD
                           startIcon={<DownloadOutlined fontSize="small" />}
                           onClick={(event) => {
                             event.preventDefault();
-                            triggerFileDownload(fileUrl, label);
+                            triggerFileDownload(field, fileUrl, label);
                           }}
                           sx={{
                             minWidth: 0,
